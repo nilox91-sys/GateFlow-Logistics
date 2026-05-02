@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="GateFlow — Sistema di gestione transiti per hub logistico. Check-in, check-out e tabellone piazzale in tempo reale." />
+  <title>GateFlow — Hub Control</title>
+
+  <!-- Google Fonts: Inter e Roboto Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#1e3a8a" />
+  <link rel="apple-touch-icon" href="/icon.png" />
+</head>
+
+<body>
+
+  <!-- ════════════════════════════════════════════════
+     APP SHELL
+════════════════════════════════════════════════ -->
+  <div class="app-shell">
+
+    <!-- ── SIDEBAR DRAWER ──────────────────────────────── -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="header-brand">
+          <div class="brand-text">
+            <span class="brand-name" style="color: white;">Gate<strong>Flow</strong></span>
+            <span class="brand-sub">Hub Control</span>
+          </div>
+        </div>
+        <button class="btn-close-sidebar" onclick="toggleSidebar()">&times;</button>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-group-label">Operativo</div>
+        <button class="sidebar-link active" id="side-portineria-in"
+          onclick="switchView('portineria-in', this); toggleSidebar()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          Ingressi
+        </button>
+        <button class="sidebar-link" id="side-portineria-out"
+          onclick="switchView('portineria-out', this); toggleSidebar()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Uscite
+        </button>
+        <button class="sidebar-link" id="side-dashboard" onclick="switchView('dashboard', this); toggleSidebar()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+          </svg>
+          Piazzale LIVE
+        </button>
+        <button class="sidebar-link" id="side-magazzino" onclick="switchView('magazzino', this); toggleSidebar()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 20h20M4 20V8l8-5 8 5v12" />
+            <path d="M10 20v-5h4v5" />
+          </svg>
+          Baie / Magazzino
+        </button>
+
+        <div class="sidebar-group-label" style="margin-top: 1.5rem;">Gestione</div>
+        <button class="sidebar-link" id="side-admin" onclick="switchView('admin', this); toggleSidebar()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <circle cx="12" cy="11" r="3" />
+            <path d="M7 20s1-2 5-2 5 2 5 2" />
+          </svg>
+          Amministrazione Hub
+        </button>
+
+        <div class="sidebar-group-label" style="margin-top: 1.5rem; color: var(--accent-amber);">Demo & Presentazione
+        </div>
+        <button class="sidebar-link" id="demo-toggle-btn" onclick="togglePresentationMode()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <span id="demo-status-text">Attiva Demo (+2h)</span>
+        </button>
+
+
+        <div id="sidebar-user-card" style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; margin: 0 1rem 1rem; border: 1px solid rgba(255,255,255,0.05);">
+          <div style="font-size: 0.65rem; text-transform: uppercase; opacity: 0.5; margin-bottom: 4px; letter-spacing: 0.05em;">Sessione Attiva</div>
+          <div id="sidebar-user-name" style="font-weight: 700; font-size: 0.95rem; color: white;">—</div>
+          <div id="sidebar-user-role" style="font-size: 0.75rem; color: var(--accent-yellow); font-weight: 600;">—</div>
+        </div>
+
+        <div style="margin-top: auto; padding-top: 2rem;">
+          <button class="sidebar-link" id="side-security" onclick="openMyPasswordModal()" style="color: var(--text-secondary);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            Sicurezza Profilo
+          </button>
+          <button class="sidebar-link" onclick="handleLogout()" style="color: var(--accent-red);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Disconnetti
+          </button>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- ── HEADER ──────────────────────────────────────── -->
+    <header class="header" role="banner">
+      <div class="header-left">
+        <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Apri menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+
+      <div class="header-brand">
+        <div class="logo" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1" y="3" width="15" height="13" />
+            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+            <circle cx="5.5" cy="18.5" r="2.5" />
+            <circle cx="18.5" cy="18.5" r="2.5" />
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">Gate<strong>Flow</strong></span>
+          <span class="brand-sub">Control Tower</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="clock-display" id="clock">00:00:00</div>
+        <div class="ws-indicator" id="ws-indicator" title="Stato connessione WebSocket">
+          <span class="ws-dot" id="ws-dot"></span>
+          <span class="ws-label" id="ws-label">Connessione...</span>
+        </div>
+        <button class="btn btn-outline btn-sm" id="export-btn" onclick="exportDaily(event)"
+          title="Scarica report giornaliero Excel" style="display: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          <span class="export-btn-text">Export</span>
+        </button>
+      </div>
+    </header>
+
+
+    <!-- ── MAIN ────────────────────────────────────────── -->
+    <main class="main" role="main">
+
+      <!-- ════════════════════════════════════════════
+         VISTA 1A: PORTINERIA IN (Check-IN)
+    ════════════════════════════════════════════ -->
+      <section class="view active" id="view-portineria-in" aria-label="Vista Portineria Ingresso">
+
+        <div class="portineria-grid" style="grid-template-columns: 1fr; max-width: 800px; margin: 0 auto;">
+
+          <!-- ── COLONNA ENTRATE ──────────────────────── -->
+          <div class="porta-panel ingresso-panel">
+            <div class="panel-header ingresso-header">
+              <div class="panel-header-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="panel-title">ENTRATA</h2>
+                <p class="panel-sub">Registra un nuovo ingresso</p>
+              </div>
+              <div class="panel-badge ingresso-badge" id="badge-entrate">0 al giorno</div>
+            </div>
+
+            <form class="gate-form" id="checkin-form" onsubmit="handleCheckIn(event)" autocomplete="off" novalidate>
+              <!-- Gruppo 1: Veicolo e Autista -->
+              <div class="form-group-title">VEICOLO E AUTISTA</div>
+              <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-field">
+                  <label class="field-label" for="ci-targa">TARGA TRATTORE *</label>
+                  <input class="field-input targa-input" id="ci-targa" type="text" placeholder="AB123CD" maxlength="12"
+                    required />
+                </div>
+                <div class="form-field">
+                  <label class="field-label" for="ci-targa-smr">TARGA SMR / RIMORCHIO</label>
+                  <input class="field-input targa-input" id="ci-targa-smr" type="text" placeholder="XY123WZ"
+                    maxlength="12" />
+                </div>
+              </div>
+              <div class="form-row" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1rem;">
+                <div class="form-field">
+                  <label class="field-label" for="ci-autista">AUTISTA</label>
+                  <input class="field-input" id="ci-autista" type="text" placeholder="Nome e Cognome" />
+                </div>
+                <div class="form-field">
+                  <label class="field-label" for="ci-telefono">TELEFONO</label>
+                  <input class="field-input" id="ci-telefono" type="tel" placeholder="333 1234567" />
+                </div>
+              </div>
+              <div class="form-field">
+                <label class="field-label" for="ci-vettore">VETTORE / CORRIERE *</label>
+                <input class="field-input" id="ci-vettore" type="text" placeholder="Nome trasportatore" required />
+              </div>
+
+              <!-- Gruppo 2: Dettagli Viaggio -->
+              <div class="form-group-title">DETTAGLI VIAGGIO</div>
+              <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-field">
+                  <label class="field-label" for="ci-linea">CODICE LINEA</label>
+                  <input class="field-input" id="ci-linea" type="text" placeholder="Es. AMA301" />
+                </div>
+                <div class="form-field">
+                  <label class="field-label" for="ci-vred">CODICE VRED / TME</label>
+                  <input class="field-input" id="ci-vred" type="text" placeholder="Es. 113S43RV"
+                    oninput="handleVridLookup(this.value)" />
+                </div>
+              </div>
+              <div class="form-row" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1rem;">
+                <div class="form-field">
+                  <label class="field-label" for="ci-cliente">CLIENTE</label>
+                  <input class="field-input" id="ci-cliente" type="text" placeholder="Es. CASIRATE" />
+                </div>
+                <div class="form-field">
+                  <label class="field-label" for="ci-partenza">ORARIO PARTENZA</label>
+                  <input class="field-input" id="ci-partenza" type="text" placeholder="15:20" />
+                </div>
+              </div>
+              <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-field">
+                  <label class="field-label" for="ci-operazione">OPERAZIONE *</label>
+                  <select class="field-input" id="ci-operazione" required>
+                    <option value="CARICO">CARICO</option>
+                    <option value="SCARICO">SCARICO</option>
+                    <option value="RESO">RESO</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label class="field-label" for="ci-molo">MOLO ASSEGNATO</label>
+                  <input class="field-input" id="ci-molo" type="number" min="1" max="99" placeholder="N° molo" />
+                </div>
+              </div>
+
+              <!-- Gruppo 3: Carico e Documenti -->
+              <div class="form-group-title">CARICO E DOCUMENTI</div>
+              <div class="form-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem;">
+                <div class="form-field">
+                  <label class="field-label" for="ci-ddt">N° DDT / DOC</label>
+                  <input class="field-input" id="ci-ddt" type="text" placeholder="Es. 123/A" />
+                </div>
+                <div class="form-field">
+                  <label class="field-label" for="ci-colli">COLLI</label>
+                  <input class="field-input" id="ci-colli" type="number" min="0" placeholder="0" />
+                </div>
+                <div class="form-field">
+                  <label class="field-label" for="ci-peso">PESO (KG)</label>
+                  <input class="field-input" id="ci-peso" type="number" min="0" placeholder="0" />
+                </div>
+              </div>
+              <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.5rem;">
+                <div class="form-field">
+                  <label class="field-label" for="ci-bi">B.I.</label>
+                  <input class="field-input" id="ci-bi" type="number" />
+                </div>
+                <div class="form-field">
+                  <label class="field-label" for="ci-ci">C.I.</label>
+                  <input class="field-input" id="ci-ci" type="number" />
+                </div>
+                <div class="form-field">
+                  <label class="field-label" for="ci-sacco">SACCO</label>
+                  <input class="field-input" id="ci-sacco" type="number" />
+                </div>
+                <div class="form-field">
+                  <label class="field-label" for="ci-sfu">% SFU</label>
+                  <input class="field-input" id="ci-sfu" type="number" />
+                </div>
+              </div>
+              <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+                <div class="form-field">
+                  <label class="field-label" for="ci-pe">PE</label>
+                  <input class="field-input" id="ci-pe" type="number" />
+                </div>
+                <div class="form-field">
+                  <label class="field-label" for="ci-rr">RR</label>
+                  <input class="field-input" id="ci-rr" type="text" />
+                </div>
+                <div class="form-field">
+                  <label class="field-label" for="ci-me">ME</label>
+                  <input class="field-input" id="ci-me" type="text" />
+                </div>
+              </div>
+
+              <!-- Gruppo 4: Sicurezza e Note -->
+              <div class="form-group-title">SICUREZZA E NOTE</div>
+              <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-field">
+                  <label class="field-label" for="ci-sigillo1">SIGILLO 1</label>
+                  <input class="field-input" id="ci-sigillo1" type="text" />
+                </div>
+                <div class="form-field">
+                  <label class="field-label" for="ci-sigillo2">SIGILLO 2</label>
+                  <input class="field-input" id="ci-sigillo2" type="text" />
+                </div>
+              </div>
+              <div class="form-field">
+                <label class="field-label" for="ci-note">NOTE AGGIUNTIVE</label>
+                <textarea class="field-input" id="ci-note" placeholder="Eventuali note..." rows="2"
+                  style="resize: vertical; min-height: 60px;"></textarea>
+              </div>
+
+              <button class="btn btn-ingresso gate-btn" type="submit" id="checkin-submit-btn" style="margin-top: 2rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+                REGISTRA INGRESSO
+              </button>
+              <button class="btn btn-ghost btn-sm" type="reset">Pulisci campi</button>
+            </form>
+          </div><!-- /portineria-grid -->
+
+          <!-- ── REGISTRO GIORNALIERO (IN) ────────────────────── -->
+          <div class="activity-log-section" style="max-width: 800px; margin: 2rem auto 0;">
+            <div class="section-header" style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <h3 class="section-title">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                  Registro Ingressi & Transiti
+                </h3>
+                <span class="section-note">Consulta tutte le attività</span>
+              </div>
+              <div>
+                <input type="date" class="field-input" id="history-date-in" onchange="loadHistory(this.value)"
+                  style="padding:4px 8px; font-size:0.9rem;" />
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table aria-label="Log attività recente IN">
+                <thead>
+                  <tr>
+                    <th>Ora</th>
+                    <th>Mezzo / SMR</th>
+                    <th>Linea / Cliente</th>
+                    <th>Vettore / Operaz.</th>
+                    <th>Molo</th>
+                    <th>Stato</th>
+                    <th>Azioni</th>
+                  </tr>
+                </thead>
+                <tbody id="activity-tbody-in">
+                  <tr>
+                    <td colspan="7">
+                      <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <p>Nessun movimento registrato oggi</p>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+      </section><!-- /view-portineria-in -->
+
+      <!-- ════════════════════════════════════════════
+         VISTA 1B: PORTINERIA OUT (Check-OUT)
+    ════════════════════════════════════════════ -->
+      <section class="view" id="view-portineria-out" aria-label="Vista Portineria Uscite">
+
+        <div class="portineria-grid" style="grid-template-columns: 1fr; max-width: 800px; margin: 0 auto;">
+
+          <!-- ── COLONNA USCITE ───────────────────────── -->
+          <div class="porta-panel uscita-panel">
+            <div class="panel-header uscita-header">
+              <div class="panel-header-icon uscita-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="panel-title">USCITA</h2>
+                <p class="panel-sub">Verifica e rilascia il mezzo</p>
+              </div>
+              <div class="panel-badge uscita-badge" id="badge-uscite">0 oggi</div>
+            </div>
+
+            <div class="gate-form">
+              <!-- ── FAST TRACK (Logistics optimized) ── -->
+              <div class="form-group-title"
+                style="margin-top: 0; color: var(--accent-emerald); border-color: var(--accent-emerald);">FAST TRACK -
+                MEZZI PRONTI (COMPLETATI)</div>
+              <div id="fast-track-list" style="margin-bottom: 2rem;">
+                <!-- Popolato dinamicamente via JS con i mezzi in stato COMPLETATO -->
+              </div>
+
+              <!-- ── RICERCA MANUALE ── -->
+              <div class="form-group-title">RICERCA MANUALE (CASI ECCEZIONALI)</div>
+              <div class="form-field">
+                <label class="field-label" for="co-targa">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="6" width="20" height="12" rx="2" />
+                    <path d="M7 10h2m4 0h4" />
+                  </svg>
+                  CERCA PER TARGA
+                </label>
+                <div class="search-row">
+                  <input class="field-input targa-input" id="co-targa" type="text" placeholder="Cerca targa..."
+                    maxlength="12" autocapitalize="characters" autocorrect="off" autocomplete="off"
+                    oninput="searchTransit(this.value)" />
+                  <button class="btn btn-outline btn-sm" type="button"
+                    onclick="searchTransit(document.getElementById('co-targa').value)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.2">
+                      <circle cx="11" cy="11" r="8" />
+                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Risultato ricerca mezzo -->
+              <div class="search-result" id="search-result" aria-live="polite">
+                <div class="search-placeholder">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                  <p>Cerca la targa del mezzo da rilasciare</p>
+                </div>
+              </div>
+
+              <button class="btn btn-uscita gate-btn" type="button" id="checkout-btn" onclick="handleCheckOut()"
+                disabled>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+                VERIFICA E RILASCIA
+              </button>
+            </div>
+          </div>
+
+        </div><!-- /portineria-grid -->
+
+        <!-- ── REGISTRO GIORNALIERO (OUT) ────────────────────── -->
+        <div class="activity-log-section" style="max-width: 800px; margin: 2rem auto 0;">
+          <div class="section-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <h3 class="section-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <path d="M16 16l4-4-4-4M20 12H9M13 16l4-4-4-4" />
+                </svg>
+                Registro Uscite & Spedizioni
+              </h3>
+              <span class="section-note">Consulta tutte le attività</span>
+            </div>
+            <div>
+              <input type="date" class="field-input" id="history-date-out" onchange="loadHistory(this.value)"
+                style="padding:4px 8px; font-size:0.9rem;" />
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table aria-label="Log attività recente OUT">
+              <thead>
+                <tr>
+                  <th>Uscita</th>
+                  <th>Targa</th>
+                  <th>Vettore</th>
+                  <th>Operazione</th>
+                  <th>Tempi (In/Out)</th>
+                  <th>Molo</th>
+                  <th>Stato</th>
+                  <th>Azioni</th>
+                </tr>
+              </thead>
+              <tbody id="activity-tbody-out">
+                <tr>
+                  <td colspan="7">
+                    <div class="empty-state">
+                      <div class="empty-icon">📋</div>
+                      <p>Nessun movimento registrato oggi</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section><!-- /view-portineria-out -->
+
+
+      <!-- ════════════════════════════════════════════
+         VISTA 2: TABELLONE PIAZZALE (Real-Time)
+    ════════════════════════════════════════════ -->
+      <section class="view" id="view-dashboard" aria-label="Tabellone piazzale">
+
+        <!-- KPI Strip -->
+        <div class="kpi-strip">
+          <div class="kpi-card" id="kpi-total">
+            <div class="kpi-icon icon-blue">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="1" y="3" width="15" height="13" />
+                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                <circle cx="5.5" cy="18.5" r="2.5" />
+                <circle cx="18.5" cy="18.5" r="2.5" />
+              </svg>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" id="stat-total">0</div>
+              <div class="kpi-label">Mezzi in hub</div>
+            </div>
+          </div>
+          <div class="kpi-card" id="kpi-ingresso">
+            <div class="kpi-icon icon-blue-light">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" id="stat-ingresso">0</div>
+              <div class="kpi-label">In attesa (Ingresso)</div>
+            </div>
+          </div>
+          <div class="kpi-card" id="kpi-carico">
+            <div class="kpi-icon icon-yellow">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="7" width="20" height="14" rx="2" />
+                <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
+              </svg>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" id="stat-in-carico">0</div>
+              <div class="kpi-label">In carico</div>
+            </div>
+          </div>
+          <div class="kpi-card" id="kpi-completato">
+            <div class="kpi-icon icon-green">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" id="stat-completato">0</div>
+              <div class="kpi-label">Completati</div>
+            </div>
+          </div>
+          <div class="kpi-card kpi-alert" id="kpi-overdue">
+            <div class="kpi-icon icon-red">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-value" id="stat-overdue">0</div>
+              <div class="kpi-label">Oltre 2 ore ⚠</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabellone Header -->
+        <div class="section-header" style="margin-top: 1.5rem;">
+          <h2 class="section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            Piazzale · Transiti attivi
+          </h2>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span class="rt-badge" id="rt-badge">
+              <span class="rt-dot"></span>LIVE
+            </span>
+            <button class="btn btn-outline btn-sm" onclick="loadTransits()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
+              </svg>
+              Ricarica
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrapper" style="margin-top:0.75rem;">
+          <table aria-label="Tabellone transiti attivi">
+            <thead>
+              <tr>
+                <th>Ingresso</th>
+                <th>Mezzo / SMR</th>
+                <th>Linea / Cliente</th>
+                <th>Partenza</th>
+                <th>Vettore / Operaz.</th>
+                <th>Molo</th>
+                <th>Note Operative</th>
+                <th>Permanenza</th>
+                <th>Stato</th>
+              </tr>
+            </thead>
+            <tbody id="dashboard-tbody">
+              <tr>
+                <td colspan="8">
+                  <div class="empty-state">
+                    <div class="spinner"></div>
+                    <p>Connessione in corso...</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </section><!-- /view-dashboard -->
+
+
+      <!-- ════════════════════════════════════════════
+         VISTA 3: GESTIONE MAGAZZINO
+    ════════════════════════════════════════════ -->
+      <section class="view" id="view-magazzino" aria-label="Gestione magazzino">
+
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 20h20M4 20V8l8-5 8 5v12" />
+                <path d="M10 20v-5h4v5" />
+              </svg>
+              Gestione Magazzino
+            </h2>
+            <p style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">Aggiorna lo stato operativo dei mezzi
+              in hub</p>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="loadTransits()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <polyline points="23 4 23 10 17 10" />
+              <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
+            </svg>
+            Aggiorna
+          </button>
+        </div>
+
+        <div class="table-wrapper" style="margin-top:1rem;">
+          <table aria-label="Gestione stato mezzi">
+            <thead>
+              <tr>
+                <th>Ingresso</th>
+                <th>Mezzo / Linea</th>
+                <th>Cliente</th>
+                <th>Vettore / Operaz.</th>
+                <th>Dettagli Operativi</th>
+                <th>Molo</th>
+                <th>Stato</th>
+                <th>Azioni</th>
+              </tr>
+            </thead>
+            <tbody id="warehouse-tbody">
+              <tr>
+                <td colspan="7">
+                  <div class="empty-state">
+                    <div class="spinner"></div>
+                    <p>Caricamento...</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </section><!-- /view-magazzino -->
+
+
+      <!-- ════════════════════════════════════════════
+         VISTA 4: PANNELLO AMMINISTRAZIONE (LOGISTICS CONTROL CENTER)
+    ════════════════════════════════════════════ -->
+      <section class="view" id="view-admin" aria-label="Pannello Amministrazione">
+
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)"
+                stroke-width="2.5">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              Amministrazione Hub
+            </h2>
+            <p style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">Logistics Control Center —
+              Configurazione e Gestione Enterprise</p>
+          </div>
+        </div>
+
+        <!-- Tab Navigation Amministrazione -->
+        <div class="admin-tabs-nav" role="tablist">
+          <button class="admin-tab-btn active" id="tab-btn-users" onclick="switchAdminTab('users', this)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            <span id="label-users-tab">Gestione Operatori</span>
+          </button>
+          <button class="admin-tab-btn" id="tab-btn-audit" onclick="switchAdminTab('audit', this)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Registro Attività
+          </button>
+        </div>
+
+        <!-- TAB 1: UTENTI -->
+        <div class="admin-tab-content active" id="admin-tab-users">
+          <div class="card" style="padding: 1.5rem; margin-top: 1rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+              <h3 style="font-size:1.1rem;">Gestione Profili Operativi</h3>
+              <button class="btn btn-primary btn-sm" id="btn-new-user" onclick="manageUser()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Nuovo Utente
+              </button>
+            </div>
+            <div class="table-wrapper">
+              <table aria-label="Elenco utenti">
+                <thead>
+                  <tr>
+                    <th>Operatore</th>
+                    <th>Grado / Ruolo</th>
+                    <th>Reportistica</th>
+                    <th>Azioni</th>
+                  </tr>
+                </thead>
+                <tbody id="users-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: AUDIT LOG -->
+        <div class="admin-tab-content" id="admin-tab-audit">
+          <div class="card" style="padding: 1.5rem; margin-top: 1rem;">
+            <h3 style="font-size:1.1rem; margin-bottom:1.25rem;">Cronologia Modifiche di Sistema</h3>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Data/Ora</th>
+                    <th>Operatore</th>
+                    <th>Azione Eseguita</th>
+                    <th>Dettaglio</th>
+                  </tr>
+                </thead>
+                <tbody id="audit-tbody">
+                  <tr>
+                    <td colspan="4" class="text-muted" style="text-align:center; padding:2rem;">Nessuna attività
+                      registrata recentemente</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </section><!-- /view-admin -->
+
+    </main>
+
+
+
+  </div><!-- /app-shell -->
+
+
+  <!-- ════════════════════════════════════════════════
+     MODAL — AGGIORNA STATO / TRANSITO
+════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="status-modal" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
+    <div class="modal" style="width: min(800px, 98vw);">
+      <div class="modal-header">
+        <h3 id="modal-heading">Modifica Transito</h3>
+        <button class="modal-close" onclick="closeModal()" aria-label="Chiudi">&times;</button>
+      </div>
+      <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
+        <input type="hidden" id="modal-transit-id" />
+
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+
+          <!-- Colonna Sinistra -->
+          <div>
+            <div class="form-group-title" style="margin-top: 0;">VEICOLO E AUTISTA</div>
+            <div class="form-field">
+              <label class="field-label" for="modal-targa">TARGA TRATTORE</label>
+              <input class="field-input targa-input" type="text" id="modal-targa" />
+            </div>
+            <div class="form-field" style="margin-top:1rem;">
+              <label class="field-label" for="modal-targa-smr">TARGA SMR</label>
+              <input class="field-input targa-input" type="text" id="modal-targa-smr" />
+            </div>
+            <div class="form-field" style="margin-top:1rem;">
+              <label class="field-label" for="modal-autista">AUTISTA</label>
+              <input class="field-input" type="text" id="modal-autista" />
+            </div>
+            <div class="form-field" style="margin-top:1rem;">
+              <label class="field-label" for="modal-telefono">TELEFONO</label>
+              <input class="field-input" type="text" id="modal-telefono" />
+            </div>
+            <div class="form-field" style="margin-top:1rem;">
+              <label class="field-label" for="modal-vettore">VETTORE / CORRIERE</label>
+              <input class="field-input" type="text" id="modal-vettore" />
+            </div>
+
+            <div class="form-group-title">OPERAZIONE E LOGISTICA</div>
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-field">
+                <label class="field-label" for="modal-operazione">OPERAZIONE</label>
+                <select class="field-input" id="modal-operazione">
+                  <option value="CARICO">CARICO</option>
+                  <option value="SCARICO">SCARICO</option>
+                  <option value="RESO">RESO</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label class="field-label" for="modal-molo">MOLO</label>
+                <input class="field-input" type="number" id="modal-molo" min="1" max="99" />
+              </div>
+            </div>
+            <div class="form-field" style="margin-top:1rem;">
+              <label class="field-label" for="modal-stato">STATO SISTEMA</label>
+              <select class="field-input" id="modal-stato">
+                <option value="INGRESSO">🔵 INGRESSO — In attesa</option>
+                <option value="IN_CARICO">🟡 IN LAVORAZIONE — Alle baie</option>
+                <option value="COMPLETATO">🟢 COMPLETATO — Pronto</option>
+                <option value="USCITO">⚪ USCITO — Fine transito</option>
+              </select>
+            </div>
+            <div class="form-field" style="margin-top:1rem;">
+              <label class="field-label" for="modal-note">NOTE</label>
+              <textarea class="field-input" id="modal-note" rows="2"></textarea>
+            </div>
+          </div>
+
+          <!-- Colonna Destra -->
+          <div>
+            <div class="form-group-title" style="margin-top: 0;">DETTAGLI HUB</div>
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-field">
+                <label class="field-label" for="modal-linea">CODICE LINEA</label>
+                <input class="field-input" id="modal-linea" type="text" />
+              </div>
+              <div class="form-field">
+                <label class="field-label" for="modal-vred">VRED / TME</label>
+                <input class="field-input" id="modal-vred" type="text" oninput="handleVridLookup(this.value, true)" />
+              </div>
+            </div>
+            <div class="form-row" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1rem; margin-top:1rem;">
+              <div class="form-field">
+                <label class="field-label" for="modal-cliente">CLIENTE</label>
+                <input class="field-input" id="modal-cliente" type="text" />
+              </div>
+              <div class="form-field">
+                <label class="field-label" for="modal-partenza">PARTENZA</label>
+                <input class="field-input" id="modal-partenza" type="text" />
+              </div>
+            </div>
+
+            <div class="form-group-title">CARICO E SICUREZZA</div>
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-field">
+                <label class="field-label" for="modal-ddt">N° DDT</label>
+                <input class="field-input" id="modal-ddt" type="text" />
+              </div>
+              <div class="form-field">
+                <label class="field-label" for="modal-colli">COLLI</label>
+                <input class="field-input" id="modal-colli" type="number" />
+              </div>
+            </div>
+            <div class="form-row"
+              style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.5rem; margin-top:1rem;">
+              <div class="form-field">
+                <label class="field-label" for="modal-bi">B.I.</label>
+                <input class="field-input" id="modal-bi" type="number" />
+              </div>
+              <div class="form-field">
+                <label class="field-label" for="modal-ci">C.I.</label>
+                <input class="field-input" id="modal-ci" type="number" />
+              </div>
+              <div class="form-field">
+                <label class="field-label" for="modal-sacco">SACCO</label>
+                <input class="field-input" id="modal-sacco" type="number" />
+              </div>
+              <div class="form-field">
+                <label class="field-label" for="modal-sfu">% SFU</label>
+                <input class="field-input" id="modal-sfu" type="number" />
+              </div>
+            </div>
+            <div class="form-row"
+              style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-top:1rem;">
+              <div class="form-field">
+                <label class="field-label" for="modal-pe">PE</label>
+                <input class="field-input" id="modal-pe" type="number" />
+              </div>
+              <div class="form-field">
+                <label class="field-label" for="modal-rr">RR</label>
+                <input class="field-input" id="modal-rr" type="text" />
+              </div>
+              <div class="form-field">
+                <label class="field-label" for="modal-me">ME</label>
+                <input class="field-input" id="modal-me" type="text" />
+              </div>
+            </div>
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top:1rem;">
+              <div class="form-field">
+                <label class="field-label" for="modal-sigillo1">SIGILLO 1</label>
+                <input class="field-input" id="modal-sigillo1" type="text" />
+              </div>
+              <div class="form-field">
+                <label class="field-label" for="modal-sigillo2">SIGILLO 2</label>
+                <input class="field-input" id="modal-sigillo2" type="text" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button class="btn btn-ghost" id="delete-transit-btn" onclick="handleDeleteTransit()" 
+          style="color: var(--accent-red); display: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Elimina
+        </button>
+        <div style="display: flex; gap: 0.75rem;">
+          <button class="btn btn-primary" onclick="confirmStatusChange()">Salva Modifiche</button>
+          <button class="btn btn-ghost" onclick="closeModal()">Annulla</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════
+     MODAL — GESTIONE UTENTE
+════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="user-modal" role="dialog" aria-modal="true">
+    <div class="modal" style="width: min(550px, 95vw);">
+      <div class="modal-header">
+        <h3 id="user-modal-heading">Gestisci Utente</h3>
+        <button class="modal-close" onclick="closeUserModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="manage-user-id" />
+
+        <div class="form-group-title" style="margin-top:0;">CREDENZIALI ACCESSO</div>
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-field">
+            <label class="field-label" for="user-username">Username</label>
+            <input class="field-input" type="text" id="user-username" placeholder="Es. portineria_in" required />
+          </div>
+          <div class="form-field">
+            <label class="field-label" for="user-password">Password</label>
+            <input class="field-input" type="password" id="user-password" placeholder="••••••••" />
+            <small style="color:var(--text-muted); font-size:0.65rem; margin-top:4px; display:block;">Lascia vuoto per
+              non modificare</small>
+          </div>
+        </div>
+
+        <div class="form-group-title">INFORMAZIONI OPERATORE</div>
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-field">
+            <label class="field-label" for="user-nome">Nome Completo</label>
+            <input class="field-input" type="text" id="user-nome" placeholder="Mario Rossi" />
+          </div>
+          <div class="form-field">
+            <label class="field-label" for="user-matricola">Matricola / Badge</label>
+            <input class="field-input" type="text" id="user-matricola" placeholder="Badge ID" />
+          </div>
+        </div>
+
+        <div class="form-group-title">PERMESSI E RUOLO</div>
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+          <div class="form-field">
+            <label class="field-label" for="user-role">Grado Sistema</label>
+            <select class="field-input" id="user-role">
+              <option value="admin">Administrator (Totale)</option>
+              <option value="responsabile">Responsabile (Hub / Modifiche)</option>
+              <option value="portineria_in">Portineria IN</option>
+              <option value="portineria_out">Portineria OUT</option>
+              <option value="magazzino">Magazzino / Baie</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field"
+          style="margin-top:1.5rem; flex-direction:row; align-items:center; gap:12px; background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05);">
+          <input type="checkbox" id="user-can-export" style="width:20px; height:20px; cursor:pointer;" />
+          <div>
+            <label class="field-label" for="user-can-export" style="margin:0; cursor:pointer; font-weight:700;">Abilita
+              Download Report</label>
+            <p style="font-size:0.7rem; color:var(--text-muted); margin:0;">Permette di esportare i registri in formato
+              Excel</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="confirmUserSave()">Salva Profilo</button>
+        <button class="btn btn-ghost" onclick="closeUserModal()">Annulla</button>
+      </div>
+    </div>
+  </div>
+  <div class="modal-overlay login-modal-overlay active" id="login-modal" role="dialog" aria-modal="true">
+    <div class="modal login-modal-container">
+      <div class="login-logo-container">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="3" width="15" height="13" />
+          <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+          <circle cx="5.5" cy="18.5" r="2.5" />
+          <circle cx="18.5" cy="18.5" r="2.5" />
+        </svg>
+      </div>
+      <h3 class="login-title">GateFlow Hub Control</h3>
+      <p class="login-sub">Autenticazione richiesta</p>
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-field" style="text-align: left;">
+          <label class="field-label" for="login-user">Utente</label>
+          <input class="field-input" type="text" id="login-user" required placeholder="Es. portineria_in" />
+        </div>
+        <div class="form-field" style="text-align: left; margin-top: 1.25rem;">
+          <label class="field-label" for="login-pass">Password</label>
+          <input class="field-input" type="password" id="login-pass" required />
+        </div>
+        <button class="btn btn-ingresso gate-btn" type="submit" id="login-submit-btn"
+          style="width: 100%; margin-top: 24px; padding: 12px;">
+          Accedi
+        </button>
+        <div style="margin-top: 1.5rem; text-align: center;">
+          <a href="#" onclick="showResetInfo()" style="color: var(--accent-blue); font-size: 0.85rem; text-decoration: none; opacity: 0.8;">Password dimenticata?</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════
+     TOAST NOTIFICATIONS
+════════════════════════════════════════════════ -->
+  <nav class="bottom-nav" aria-label="Navigazione mobile">
+    <button class="bottom-nav-btn active" data-view="portineria-in" onclick="switchView('portineria-in', this)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+      <span>IN</span>
+    </button>
+    <button class="bottom-nav-btn" data-view="portineria-out" onclick="switchView('portineria-out', this)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
+      <span>OUT</span>
+    </button>
+    <button class="bottom-nav-btn" data-view="dashboard" onclick="switchView('dashboard', this)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <rect x="3" y="3" width="7" height="7" />
+        <rect x="14" y="3" width="7" height="7" />
+        <rect x="14" y="14" width="7" height="7" />
+        <rect x="3" y="14" width="7" height="7" />
+      </svg>
+      <span>LIVE</span>
+    </button>
+    <button class="bottom-nav-btn" data-view="magazzino" onclick="switchView('magazzino', this)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M2 20h20M4 20V8l8-5 8 5v12" />
+        <path d="M10 20v-5h4v5" />
+      </svg>
+      <span>BAIE</span>
+    </button>
+
+  </nav>
+
+  <div id="toast-container" role="alert" aria-live="assertive" aria-atomic="true"></div>
+
+  </div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('Service Worker registered'))
+          .catch(err => console.log('Service Worker registration failed', err));
+      });
+    }
+  </script>
+    <!-- ════════════════════════════════════════════════
+     MODAL — CAMBIA MIA PASSWORD
+════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="my-password-modal" role="dialog" aria-modal="true">
+    <div class="modal-container" style="max-width: 400px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon" style="background: var(--accent-blue-soft); color: var(--accent-blue);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+          </div>
+          <h2 class="modal-heading">Sicurezza Account</h2>
+        </div>
+        <button class="btn-close" onclick="closeMyPasswordModal()" aria-label="Chiudi">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+          Aggiorna la tua password di accesso al sistema.
+        </p>
+        <div class="form-field">
+          <label class="field-label">Nuova Password</label>
+          <input class="field-input" id="my-new-password" type="password" placeholder="Minimo 6 caratteri" />
+        </div>
+        <div class="form-field">
+          <label class="field-label">Conferma Password</label>
+          <input class="field-input" id="my-confirm-password" type="password" placeholder="Ripeti password" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" style="width: 100%;" onclick="confirmMyPasswordChange()">Aggiorna Ora</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════
+     MODAL — RECUPERO CREDENZIALI
+════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="reset-info-modal" role="dialog" aria-modal="true">
+    <div class="modal-container" style="max-width: 450px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon" style="background: #fffbeb; color: #d97706;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+          <h2 class="modal-heading">Recupero Credenziali</h2>
+        </div>
+        <button class="btn-close" onclick="closeResetInfo()" aria-label="Chiudi">&times;</button>
+      </div>
+      <div class="modal-body" style="text-align: center; padding: 2rem 1.5rem;">
+        <div style="font-size: 3rem; margin-bottom: 1.5rem; filter: grayscale(0.2);">🔒</div>
+        <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Procedura di Sicurezza</h3>
+        <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem;">
+          Per garantire la massima sicurezza del sistema <strong>GateFlow</strong>, il reset della password non può essere effettuato online.
+        </p>
+        <div style="background: #f8fafc; border-radius: 8px; padding: 1rem; text-align: left; border-left: 4px solid var(--accent-blue);">
+          <p style="font-size: 0.85rem; color: var(--text-primary); font-weight: 600; margin-bottom: 0.5rem;">Cosa fare ora:</p>
+          <ul style="font-size: 0.85rem; color: var(--text-secondary); padding-left: 1.2rem;">
+            <li>Recati presso l'ufficio supervisione</li>
+            <li>Contatta un <strong>Responsabile</strong> di turno</li>
+            <li>Richiedi il reset immediato della password</li>
+          </ul>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" style="width: 100%;" onclick="closeResetInfo()">Ho capito</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
