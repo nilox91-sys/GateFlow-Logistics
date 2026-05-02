@@ -722,10 +722,14 @@ function renderCheckoutCard(found, resultBox, checkoutBtn) {
         <span>⏱ ${formatElapsed(Date.now() - new Date(found.timestamp_in).getTime())}</span>
         ${found.molo ? `<span>🏭 Molo ${found.molo}</span>` : ''}
       </div>
-      <div style="margin-top:8px;">
+      <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
          <span class="badge badge-${escHtml(found.stato)}">
            ${isOk ? '✅ COMPLETATO — Autorizzato all\'uscita' : stateLabel(found.stato)}
          </span>
+         <button class="btn btn-sm btn-outline" style="border-color: var(--border-color); display:flex; align-items:center;" onclick="printBordero('${escHtml(found.id)}')">
+           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+           STAMPA BORDERÒ
+         </button>
       </div>`;
 
   if (!isOk) {
@@ -1023,6 +1027,103 @@ async function handleDeleteTransit() {
 
 
 
+/** Stampa Borderò di Rilascio */
+function printBordero(id) {
+  let t = transits.find(x => x.id === id);
+  if (!t) {
+    t = historyTransits.find(x => x.id === id);
+  }
+  
+  if (!t) {
+    toast('Errore: Impossibile trovare i dati del transito.', 'error');
+    return;
+  }
+
+  const printWindow = window.open('', '_blank', 'width=800,height=600');
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Borderò - ${escHtml(t.targa)}</title>
+        <style>
+          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 20px; color: #333; }
+          .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+          h1 { margin: 0; font-size: 24px; }
+          h2 { margin: 5px 0 0; font-size: 16px; color: #666; }
+          .row { display: flex; flex-wrap: wrap; margin-bottom: 15px; }
+          .col { flex: 1; min-width: 200px; margin-bottom: 10px; }
+          .label { font-weight: bold; font-size: 12px; color: #555; text-transform: uppercase; margin-bottom: 2px; }
+          .value { font-size: 16px; font-weight: 500; }
+          .section { margin-bottom: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 4px; }
+          .section-title { font-size: 14px; background: #eee; padding: 5px 10px; font-weight: bold; margin: -15px -15px 15px -15px; border-bottom: 1px solid #ddd; border-radius: 4px 4px 0 0; }
+          .signatures { margin-top: 50px; display: flex; justify-content: space-around; }
+          .sig-box { width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 5px; font-weight: bold; }
+          .print-btn { padding:10px 20px; background:#0d6efd; color:#fff; border:none; border-radius:4px; cursor:pointer; margin-bottom:20px; float:right; font-weight: bold; }
+          @media print {
+            .print-btn { display: none !important; }
+            body { padding: 0; }
+            .section { page-break-inside: avoid; }
+          }
+        </style>
+      </head>
+      <body>
+        <button class="print-btn" onclick="window.print()">🖨️ Stampa Documento</button>
+        <div class="header">
+          <h1>BORDERÒ DI SPEDIZIONE / RILASCIO</h1>
+          <h2>GateFlow Hub Logistico</h2>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">DATI VEICOLO E AUTISTA</div>
+          <div class="row">
+            <div class="col"><div class="label">Targa Trattore</div><div class="value">${escHtml(t.targa)}</div></div>
+            <div class="col"><div class="label">Targa SMR / Rimorchio</div><div class="value">${escHtml(t.targa_smr || '-')}</div></div>
+            <div class="col"><div class="label">Vettore / Corriere</div><div class="value">${escHtml(t.vettore)}</div></div>
+          </div>
+          <div class="row">
+            <div class="col"><div class="label">Autista</div><div class="value">${escHtml(t.autista || '-')}</div></div>
+            <div class="col"><div class="label">Telefono</div><div class="value">${escHtml(t.telefono || '-')}</div></div>
+            <div class="col"><div class="label">Data/Ora Ingresso</div><div class="value">${new Date(t.timestamp_in).toLocaleString('it-IT')}</div></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">DETTAGLI VIAGGIO</div>
+          <div class="row">
+            <div class="col"><div class="label">Operazione</div><div class="value">${escHtml(t.tipo_operazione)}</div></div>
+            <div class="col"><div class="label">Codice Linea</div><div class="value">${escHtml(t.codice_linea || '-')}</div></div>
+            <div class="col"><div class="label">Codice VRED / TME</div><div class="value">${escHtml(t.codice_vred_tme || '-')}</div></div>
+          </div>
+          <div class="row">
+            <div class="col"><div class="label">Cliente</div><div class="value">${escHtml(t.cliente || '-')}</div></div>
+            <div class="col"><div class="label">Partenza</div><div class="value">${escHtml(t.partenza || '-')}</div></div>
+            <div class="col"><div class="label">Molo</div><div class="value">${escHtml(t.molo || '-')}</div></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">CARICO E DOCUMENTI</div>
+          <div class="row">
+            <div class="col"><div class="label">N° DDT / DOC</div><div class="value">${escHtml(t.ddt || '-')}</div></div>
+            <div class="col"><div class="label">Colli</div><div class="value">${escHtml(t.colli || '-')}</div></div>
+            <div class="col"><div class="label">Peso (Kg)</div><div class="value">${escHtml(t.peso || '-')}</div></div>
+          </div>
+          <div class="row">
+            <div class="col"><div class="label">Sigillo 1</div><div class="value">${escHtml(t.sigillo1 || '-')}</div></div>
+            <div class="col"><div class="label">Sigillo 2</div><div class="value">${escHtml(t.sigillo2 || '-')}</div></div>
+            <div class="col"><div class="label">Note Operative</div><div class="value">${escHtml(t.note || '-')}</div></div>
+          </div>
+        </div>
+
+        <div class="signatures">
+          <div class="sig-box">Firma Addetto Portineria</div>
+          <div class="sig-box">Firma Autista</div>
+        </div>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+}
+
 // ═══════════════════════════════════════════════════════════════
 // RENDER — Aggiornamento DOM
 // ═══════════════════════════════════════════════════════════════
@@ -1054,10 +1155,16 @@ function renderFastTrack() {
         <div style="font-family: 'Roboto Mono', monospace; font-size: 1.3rem; font-weight: 800; color: var(--accent-emerald); line-height: 1.2;">${escHtml(t.targa)}</div>
         <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600;">🚛 ${escHtml(t.vettore)} ${t.molo ? `| 🏭 Molo ${t.molo}` : ''}</div>
       </div>
-      <button class="btn btn-sm btn-ingresso" onclick="forceCheckout('${escHtml(t.id)}')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px;"><polyline points="15 18 9 12 15 6"/></svg>
-        RILASCIA SUBITO
-      </button>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-sm btn-outline" style="border-color: var(--accent-emerald); color: var(--accent-emerald); display:flex; align-items:center;" onclick="printBordero('${escHtml(t.id)}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          STAMPA BORDERÒ
+        </button>
+        <button class="btn btn-sm btn-ingresso" onclick="forceCheckout('${escHtml(t.id)}')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px;"><polyline points="15 18 9 12 15 6"/></svg>
+          RILASCIA SUBITO
+        </button>
+      </div>
     </div>
   `).join('');
 }
