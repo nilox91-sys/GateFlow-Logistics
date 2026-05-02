@@ -1,5 +1,5 @@
 """
-main.py - FastAPI Backend for SDA Logistics Hub
+main.py - FastAPI Backend for GateFlow Logistics Hub
 
 Endpoints:
   POST   /check-in              → Portineria registers incoming vehicle
@@ -36,7 +36,7 @@ FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 
 app = FastAPI(
     title="GateFlow Logistics API",
-    description="Professional backend for SDA Logistics Hub transit management.",
+    description="Professional backend for GateFlow Logistics Hub transit management.",
     version="1.1.0",
 )
 

@@ -1,31 +1,33 @@
 /* ════════════════════════════════════════════════════════════
-   style.css — GateFlow Corporate SDA Style
-   Design: Flat Corporate Theme, High Contrast
+   style.css — GateFlow Logistics Design System
+   Theme: Modern Professional, High Contrast, Glassmorphism
    ════════════════════════════════════════════════════════════ */
 
 :root {
-  --bg-main: #ebf0f5;
-  --bg-header: #243b55;
+  --bg-main: #f8fafc;
+  --bg-header: #0f172a;
   --bg-card: #ffffff;
-  --bg-input: #fdfdfd;
-  --text-primary: #1a202c;
-  --text-secondary: #4a5568;
-  --text-muted: #718096;
-  --accent-blue: #2c5282;
-  --accent-blue-rgb: 44, 82, 130;
-  --accent-yellow: #d69e2e;
-  --accent-yellow-rgb: 214, 158, 46;
-  --accent-emerald: #2f855a;
-  --accent-red: #c53030;
-  --accent-cyan: #2b6cb0;
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 24px;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  --border-color: #cbd5e0;
+  --bg-input: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --accent-blue: #2563eb;
+  --accent-blue-rgb: 37, 99, 235;
+  --accent-yellow: #f59e0b;
+  --accent-yellow-rgb: 245, 158, 11;
+  --accent-emerald: #10b981;
+  --accent-red: #ef4444;
+  --accent-cyan: #06b6d4;
+  --radius-sm: 10px;
+  --radius-md: 18px;
+  --radius-lg: 32px;
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --border-color: #e2e8f0;
 }
 
 * {
@@ -832,34 +834,36 @@ tr.alert-red td:first-child {
   font-weight: 500;
 }
 
-/* ─── TOASTS ─────────────────────────────────────────── */
+/* ─── TOASTS (Elegant & Progressive) ───────────────── */
 #toast-container {
   position: fixed;
-  top: 1.5rem;
-  right: 1.5rem;
-  z-index: 3000;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 5000;
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   gap: 12px;
   pointer-events: none;
 }
 
 .toast {
   pointer-events: auto;
-  min-width: 340px;
-  max-width: 450px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: var(--radius-md);
-  padding: 16px;
+  min-width: 320px;
+  max-width: 420px;
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-  animation: toast-enter 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: toast-enter 0.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
   position: relative;
   overflow: hidden;
+  color: white;
 }
 
 .toast::after {
@@ -867,17 +871,18 @@ tr.alert-red td:first-child {
   position: absolute;
   bottom: 0;
   left: 0;
-  height: 3px;
+  height: 2px;
   width: 100%;
   background: var(--accent-blue);
   animation: toast-progress 4.5s linear forwards;
+  opacity: 0.8;
 }
 
 .toast-icon {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -885,11 +890,10 @@ tr.alert-red td:first-child {
 
 .toast-content {
   flex: 1;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 500;
-  color: #1e293b;
+  color: #f8fafc;
   line-height: 1.4;
-  padding-top: 4px;
 }
 
 .toast-close-btn {
@@ -922,12 +926,12 @@ tr.alert-red td:first-child {
 .toast-info::after { background: var(--accent-blue); }
 
 @keyframes toast-enter {
-  from { opacity: 0; transform: translateX(100px) scale(0.9); }
-  to { opacity: 1; transform: translateX(0) scale(1); }
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes toast-exit {
-  to { opacity: 0; transform: translateX(100px); }
+  to { opacity: 0; transform: translateX(20px); }
 }
 
 @keyframes toast-progress {

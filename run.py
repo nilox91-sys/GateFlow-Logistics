@@ -1,5 +1,5 @@
 """
-run.py — Quick launcher for the SDA Logistics backend.
+run.py — Quick launcher for the GateFlow Logistics backend.
 
 Usage:
     python run.py

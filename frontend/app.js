@@ -627,7 +627,7 @@ async function handleCheckIn(e) {
     }
 
     // ✅ Successo
-    toast(`✅ Mezzo registrato con successo: <strong>${escHtml(data.targa)}</strong>`, 'success');
+    // toast(...) rimosso per evitare doppia notifica (WebSocket broadcast gestisce il feedback)
     document.getElementById('checkin-form').reset();
     document.getElementById('ci-targa').focus();
 
@@ -778,7 +778,7 @@ async function handleCheckOut() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || `Errore HTTP ${res.status}`);
 
-    toast(`✅ Check-out registrato: <strong>${escHtml(data.targa)}</strong>. Buona strada!`, 'success');
+    // toast(...) rimosso per evitare doppia notifica
 
     // Reset pannello uscita
     document.getElementById('co-targa').value = '';
@@ -809,7 +809,7 @@ async function quickStatusChange(id, stato) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || 'Errore aggiornamento');
-    toast(`✅ <strong>${escHtml(data.targa)}</strong> → ${stateLabel(stato)}`, 'success');
+    // toast(...) rimosso per evitare doppia notifica
   } catch (err) {
     toast(`❌ ${escHtml(err.message)}`, 'error');
   }
@@ -988,7 +988,7 @@ async function confirmStatusChange() {
       toast(`❌ Errore salvataggio:<br>${msg}`, 'error');
       return;
     }
-    toast(`✅ Transito aggiornato: <strong>${escHtml(data.targa)}</strong>`, 'success');
+    // toast(...) rimosso per evitare doppia notifica
     loadTransits();
     loadHistory();
     closeModal();

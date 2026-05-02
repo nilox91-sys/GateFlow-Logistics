@@ -329,13 +329,13 @@ def export_daily(day: str = None, db: Session = Depends(get_db), current_user: d
         from openpyxl.utils import get_column_letter
         from openpyxl.chart import PieChart, Reference
         
-        # Colori SDA Corporate
-        sda_blue = "0033A0"
-        sda_yellow = "FFCC00"
+        # Colori Corporate
+        corporate_blue = "1E3A8A"
+        corporate_yellow = "F59E0B"
         
-        header_fill = PatternFill(start_color=sda_blue, end_color=sda_blue, fill_type="solid")
+        header_fill = PatternFill(start_color=corporate_blue, end_color=corporate_blue, fill_type="solid")
         header_font = Font(color="FFFFFF", bold=True, size=11)
-        title_font = Font(color=sda_blue, bold=True, size=18)
+        title_font = Font(color=corporate_blue, bold=True, size=18)
         align_center = Alignment(horizontal="center", vertical="center")
         align_left = Alignment(horizontal="left", vertical="center")
         thin_border = Border(left=Side(style='thin', color="D1D5DB"),
@@ -355,13 +355,12 @@ def export_daily(day: str = None, db: Session = Depends(get_db), current_user: d
         last_col_letter = get_column_letter(len(df.columns))
         worksheet.merge_cells(f'A1:{last_col_letter}2')
         title_cell = worksheet['A1']
-        title_cell.value = f"GATEFLOW - SDA HUB CONTROL | REPORT TRANSITI GIORNALIERO ({target_date.strftime('%d/%m/%Y')})"
+        title_cell.value = f"GATEFLOW HUB CONTROL | REPORT TRANSITI GIORNALIERO ({target_date.strftime('%d/%m/%Y')})"
         title_cell.font = title_font
         title_cell.alignment = align_center
         
-        # Fascia gialla sotto il titolo
         for col in range(1, len(df.columns) + 1):
-            worksheet.cell(row=3, column=col).fill = PatternFill(start_color=sda_yellow, end_color=sda_yellow, fill_type="solid")
+            worksheet.cell(row=3, column=col).fill = PatternFill(start_color=corporate_yellow, end_color=corporate_yellow, fill_type="solid")
 
         # Formatta Header Tabella con Icone Unicode
         header_map = {
@@ -457,7 +456,7 @@ def export_daily(day: str = None, db: Session = Depends(get_db), current_user: d
             summary_col = len(df.columns) - 1 if len(df.columns) > 8 else 8
             
             # Intestazione Riepilogo Executive
-            worksheet.cell(row=summary_row-1, column=summary_col, value="EXECUTIVE SUMMARY").font = Font(bold=True, size=12, color=sda_blue)
+            worksheet.cell(row=summary_row-1, column=summary_col, value="EXECUTIVE SUMMARY").font = Font(bold=True, size=12, color=corporate_blue)
             
             worksheet.cell(row=summary_row, column=summary_col, value="Stato Operativo")
             worksheet.cell(row=summary_row, column=summary_col+1, value="N° Mezzi")
@@ -508,7 +507,7 @@ def export_daily(day: str = None, db: Session = Depends(get_db), current_user: d
         worksheet.page_margins.footer = 0.2
 
     output.seek(0)
-    filename = f"transiti_sda_{target_date.strftime('%Y-%m-%d')}.xlsx"
+    filename = f"transiti_gateflow_{target_date.strftime('%Y-%m-%d')}.xlsx"
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

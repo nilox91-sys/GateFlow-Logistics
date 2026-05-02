@@ -37,7 +37,7 @@ def seed():
         },
         {
             "targa": "CD 456 BB",
-            "vettore": "SDA EXPRESS",
+            "vettore": "GATEFLOW EXPRESS",
             "codice_linea": "AMA412",
             "codice_vred_tme": "225B99XY",
             "cliente": "BLQ1 - BOLOGNA",
@@ -51,8 +51,8 @@ def seed():
         # MEZZI IN GESTIONE (Regular - Warning Giallo/Verde)
         {
             "targa": "GH 555 YY",
-            "vettore": "SDA LINEA",
-            "codice_linea": "SDA101",
+            "vettore": "LOGISTIC LINE",
+            "codice_linea": "GFLOW101",
             "cliente": "ROMA HUB",
             "stato": StatoTransito.IN_CARICO,
             "tipo_operazione": TipoOperazione.SCARICO,
@@ -86,7 +86,7 @@ def seed():
             "targa": "ZA 000 BB",
             "vettore": "POSTE ITALIANE",
             "codice_linea": "POS10",
-            "cliente": "SDA HUB",
+            "cliente": "CENTRAL HUB",
             "stato": StatoTransito.INGRESSO,
             "tipo_operazione": TipoOperazione.SCARICO,
             "molo": 1,
