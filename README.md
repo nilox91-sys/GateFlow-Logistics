@@ -11,6 +11,12 @@
 
 **GateFlow** is a next-generation enterprise platform for full control of logistics flows at sorting hubs and distribution centres. Built with a **Performance-First** philosophy, GateFlow digitises the entire lifecycle of a transit: from gate check-in all the way through to dock departure.
 
+<div align="center">
+  <video src="Getflow.mp4" width="100%" controls muted autoplay loop>
+    Your browser does not support the video tag.
+  </video>
+</div>
+
 ---
 
 ## 🏆 The Transformation: From Excel Chaos to Control Tower
